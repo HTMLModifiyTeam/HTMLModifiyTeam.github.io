@@ -1,15 +1,36 @@
 * { box-sizing: border-box; }
-:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; background: #858585; color: #f4f4f1; }
+:root {
+  color-scheme: light dark;
+  font-family: Arial, Helvetica, sans-serif;
+  --bg: #ffffff;
+  --fg: #171717;
+  --repo-three-bg: #1c1c1c;
+  --repo-two-border: #d8d7cf;
+  background: var(--bg);
+  color: var(--fg);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --fg: #f4f4f1;
+    --repo-three-bg: #2a2a2a;
+    --repo-two-border: transparent;
+  }
+}
 html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-body { background: #858585; }
+body { background: var(--bg); color: var(--fg); transition: background-color 200ms ease, color 200ms ease; }
 .stage { position: relative; width: 100%; height: 100%; min-height: 100svh; overflow: hidden; }
 h1 { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); margin: 0; font-size: clamp(3.5rem, 11vw, 10rem); line-height: .85; letter-spacing: -.09em; font-weight: 800; white-space: nowrap; user-select: none; }
 h1 span { color: #d5ff49; }
 .repo { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 1.6rem; padding: 1rem 1.25rem; border: 0; border-radius: 0; color: #171717; background: #d5ff49; text-decoration: none; font-size: clamp(.9rem, 1.5vw, 1.1rem); font-weight: 700; white-space: nowrap; will-change: left, top; transition: background-color 150ms ease, color 150ms ease; }
 .repo span { font-size: 1.15em; }
 .repo:hover, .repo:focus-visible { background: #171717; color: #fff; outline: none; }
-.repo--two { background: #f1f0ea; }
-.repo--three { background: #1c1c1c; color: #fff; }
+.repo--two { background: #f1f0ea; box-shadow: inset 0 0 0 1px var(--repo-two-border); }
+.repo--three { background: var(--repo-three-bg); color: #fff; }
 .repo--four { background: #c9d5e9; }
 .repo--three:hover, .repo--three:focus-visible { background: #d5ff49; color: #171717; }
+@media (prefers-color-scheme: dark) {
+  .repo:hover, .repo:focus-visible { background: #fff; color: #171717; }
+  .repo--three:hover, .repo--three:focus-visible { background: #d5ff49; color: #171717; }
+}
 @media (max-width: 520px) { h1 { font-size: clamp(3.3rem, 18vw, 6rem); } .repo { padding: .85rem .9rem; gap: .8rem; } }

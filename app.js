@@ -4,6 +4,43 @@ let lastTime = 0;
 let previousWidth = window.innerWidth;
 let previousHeight = window.innerHeight;
 
+let audioCtx = null;
+let lastSoundTime = 0;
+
+function unlockAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = new AC();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+['pointerdown', 'keydown', 'touchstart'].forEach((type) => window.addEventListener(type, unlockAudio, { passive: true }));
+
+function playBounce(baseFreq = 260, volume = 0.12) {
+  if (!audioCtx || audioCtx.state !== 'running') return;
+  const now = audioCtx.currentTime;
+  if (now - lastSoundTime < 0.025) return; // avoid stacking too many sounds at once
+  lastSoundTime = now;
+
+  const freq = baseFreq * (0.9 + Math.random() * 0.25);
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq * 1.6, now);
+  osc.frequency.exponentialRampToValueAtTime(freq, now + 0.05);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.16);
+}
+
+const playWallBounce = () => playBounce(220, 0.1);
+const playBoxBounce = () => playBounce(440, 0.14);
+
 function sizeStage() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -40,10 +77,10 @@ function animate(time) {
     const bottom = Math.max(0, maxH - mover.height);
     mover.x += mover.vx * step;
     mover.y += mover.vy * step;
-    if (mover.x <= 0) { mover.x = 0; mover.vx = Math.abs(mover.vx); }
-    if (mover.x >= right) { mover.x = right; mover.vx = -Math.abs(mover.vx); }
-    if (mover.y <= 0) { mover.y = 0; mover.vy = Math.abs(mover.vy); }
-    if (mover.y >= bottom) { mover.y = bottom; mover.vy = -Math.abs(mover.vy); }
+    if (mover.x <= 0) { mover.x = 0; if (mover.vx < 0) playWallBounce(); mover.vx = Math.abs(mover.vx); }
+    if (mover.x >= right) { mover.x = right; if (mover.vx > 0) playWallBounce(); mover.vx = -Math.abs(mover.vx); }
+    if (mover.y <= 0) { mover.y = 0; if (mover.vy < 0) playWallBounce(); mover.vy = Math.abs(mover.vy); }
+    if (mover.y >= bottom) { mover.y = bottom; if (mover.vy > 0) playWallBounce(); mover.vy = -Math.abs(mover.vy); }
     mover.element.style.left = `${mover.x}px`;
     mover.element.style.top = `${mover.y}px`;
   }
@@ -64,6 +101,7 @@ function animate(time) {
           b.y -= direction * (overlapY / 2 + .5);
           [a.vy, b.vy] = [b.vy, a.vy];
         }
+        playBoxBounce();
       }
     }
   }
