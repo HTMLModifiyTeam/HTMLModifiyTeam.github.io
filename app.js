@@ -1,5 +1,8 @@
 const buttons = [...document.querySelectorAll('.repo')];
-const movers = buttons.map((element, index) => ({ element, x: 0, y: 0, vx: [1.05, -0.9, 0.82, -1.12][index], vy: [0.78, 1.08, -1.1, -0.72][index], width: 0, height: 0 }));
+const presetVX = [1.05, -0.9, 0.82, -1.12];
+const presetVY = [0.78, 1.08, -1.1, -0.72];
+const randomSpeed = () => (0.7 + Math.random() * 0.5) * (Math.random() < 0.5 ? -1 : 1);
+const movers = buttons.map((element, index) => ({ element, x: 0, y: 0, vx: presetVX[index] ?? randomSpeed(), vy: presetVY[index] ?? randomSpeed(), width: 0, height: 0 }));
 let lastTime = 0;
 let previousWidth = window.innerWidth;
 let previousHeight = window.innerHeight;
@@ -41,6 +44,22 @@ function playBounce(baseFreq = 260, volume = 0.12) {
 const playWallBounce = () => playBounce(220, 0.1);
 const playBoxBounce = () => playBounce(440, 0.14);
 
+function randomizeColors() {
+  const base = Math.random() * 360;
+  const order = movers.map((_, i) => i).sort(() => Math.random() - 0.5);
+  movers.forEach((mover, i) => {
+    const hue = (base + order[i] * (360 / movers.length) + (Math.random() * 30 - 15) + 360) % 360;
+    const sat = 60 + Math.random() * 30;
+    const light = 45 + Math.random() * 35;
+    mover.element.style.setProperty('--btn-bg', `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}%)`);
+    // pick black/white text by approximate perceived luminance
+    const s = sat / 100, l = light / 100, a = s * Math.min(l, 1 - l);
+    const f = (n) => { const k = (n + hue / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+    const lum = 0.299 * f(0) + 0.587 * f(8) + 0.114 * f(4);
+    mover.element.style.setProperty('--btn-fg', lum > 0.6 ? '#171717' : '#ffffff');
+  });
+}
+
 function sizeStage() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -52,8 +71,8 @@ function sizeStage() {
     const maxX = Math.max(0, w - mover.width);
     const maxY = Math.max(0, h - mover.height);
     if (firstLayout) {
-      mover.x = [w * .07, w * .74, w * .12, w * .72][index];
-      mover.y = [h * .1, h * .36, h * .68, h * .8][index];
+      mover.x = [w * .07, w * .74, w * .12, w * .72][index] ?? Math.random() * maxX;
+      mover.y = [h * .1, h * .36, h * .68, h * .8][index] ?? Math.random() * maxY;
     } else {
       mover.x = mover.x / Math.max(1, previousWidth - mover.width) * maxX;
       mover.y = mover.y / Math.max(1, previousHeight - mover.height) * maxY;
@@ -112,6 +131,7 @@ function animate(time) {
   requestAnimationFrame(animate);
 }
 
+randomizeColors();
 sizeStage();
 window.addEventListener('resize', sizeStage);
 requestAnimationFrame(animate);
