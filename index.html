@@ -11,14 +11,18 @@
   </head>
   <body>
     <main class="stage">
+      <nav class="tabs" role="tablist" aria-label="Categories">
+        <button class="tab" role="tab" data-tab="phone" aria-selected="true">Phone</button>
+        <button class="tab" role="tab" data-tab="games" aria-selected="false">Games</button>
+      </nav>
       <h1>Welcome<span>.</span></h1>
-      <a class="repo" href="friendhazard">친구하자드</a>
-      <a class="repo" href="Youngmin">강민재 학생</a>
-      <a class="repo" href="chajuhann">차주한</a>
-      <a class="repo" href="ganadimin">강민재</a>
-      <a class="repo" href="pigeon">비둘기</a>
-      <a class="repo" href="norinori">Norinori</a>
-      <a class="repo" href="trumpet">재즈바?</a>
+      <a class="repo" data-group="phone" href="Youngmin">강민재 학생</a>
+      <a class="repo" data-group="phone" href="ganadimin">강민재</a>
+      <a class="repo" data-group="phone" href="chajuhann">차주한</a>
+      <a class="repo" data-group="games" href="friendhazard">친구하자드</a>
+      <a class="repo" data-group="games" href="pigeon">비둘기</a>
+      <a class="repo" data-group="games" href="trumpet">트럼펫</a>
+      <a class="repo" data-group="games" href="norinori">Norinori</a>
     </main>
   </body>
 </html>

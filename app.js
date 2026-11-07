@@ -2,8 +2,12 @@ const buttons = [...document.querySelectorAll('.repo')];
 const presetVX = [1.05, -0.9, 0.82, -1.12];
 const presetVY = [0.78, 1.08, -1.1, -0.72];
 const randomSpeed = () => (0.7 + Math.random() * 0.5) * (Math.random() < 0.5 ? -1 : 1);
-const movers = buttons.map((element, index) => ({ element, x: 0, y: 0, vx: presetVX[index] ?? randomSpeed(), vy: presetVY[index] ?? randomSpeed(), width: 0, height: 0 }));
+const tabs = [...document.querySelectorAll('.tab')];
+const tabBar = document.querySelector('.tabs');
+const movers = buttons.map((element) => ({ element, group: element.dataset.group, x: 0, y: 0, vx: 0, vy: 0, width: 0, height: 0 }));
+let active = [];
 let lastTime = 0;
+const getTop = () => Math.ceil(tabBar.getBoundingClientRect().bottom);
 let previousWidth = window.innerWidth;
 let previousHeight = window.innerHeight;
 
@@ -63,22 +67,26 @@ function randomizeColors() {
 function sizeStage() {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  movers.forEach((mover, index) => {
+  const top = getTop();
+  active.forEach((mover, index) => {
     const firstLayout = mover.width === 0;
     const rect = mover.element.getBoundingClientRect();
     mover.width = rect.width;
     mover.height = rect.height;
     const maxX = Math.max(0, w - mover.width);
-    const maxY = Math.max(0, h - mover.height);
+    const maxY = Math.max(top, h - mover.height);
+    const rangeY = maxY - top;
     if (firstLayout) {
+      mover.vx = presetVX[index] ?? randomSpeed();
+      mover.vy = presetVY[index] ?? randomSpeed();
       mover.x = [w * .07, w * .74, w * .12, w * .72][index] ?? Math.random() * maxX;
-      mover.y = [h * .1, h * .36, h * .68, h * .8][index] ?? Math.random() * maxY;
+      mover.y = top + ([.1, .36, .68, .8][index] ?? Math.random()) * rangeY;
     } else {
       mover.x = mover.x / Math.max(1, previousWidth - mover.width) * maxX;
-      mover.y = mover.y / Math.max(1, previousHeight - mover.height) * maxY;
+      mover.y = top + (mover.y - top) / Math.max(1, previousHeight - top - mover.height) * rangeY;
     }
     mover.x = Math.max(0, Math.min(maxX, mover.x));
-    mover.y = Math.max(0, Math.min(maxY, mover.y));
+    mover.y = Math.max(top, Math.min(maxY, mover.y));
     mover.element.style.left = `${mover.x}px`;
     mover.element.style.top = `${mover.y}px`;
   });
@@ -86,26 +94,36 @@ function sizeStage() {
   previousHeight = h;
 }
 
+function setTab(name) {
+  tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.tab === name)));
+  movers.forEach((mover) => { mover.element.hidden = mover.group !== name; mover.width = 0; });
+  active = movers.filter((mover) => mover.group === name);
+  sizeStage();
+}
+
+tabs.forEach((tab) => tab.addEventListener('click', () => setTab(tab.dataset.tab)));
+
 function animate(time) {
   const step = Math.min(2, (time - (lastTime || time)) / 16.67);
   lastTime = time;
   const maxW = window.innerWidth;
   const maxH = window.innerHeight;
-  for (const mover of movers) {
+  const top = getTop();
+  for (const mover of active) {
     const right = Math.max(0, maxW - mover.width);
-    const bottom = Math.max(0, maxH - mover.height);
+    const bottom = Math.max(top, maxH - mover.height);
     mover.x += mover.vx * step;
     mover.y += mover.vy * step;
     if (mover.x <= 0) { mover.x = 0; if (mover.vx < 0) playWallBounce(); mover.vx = Math.abs(mover.vx); }
     if (mover.x >= right) { mover.x = right; if (mover.vx > 0) playWallBounce(); mover.vx = -Math.abs(mover.vx); }
-    if (mover.y <= 0) { mover.y = 0; if (mover.vy < 0) playWallBounce(); mover.vy = Math.abs(mover.vy); }
+    if (mover.y <= top) { mover.y = top; if (mover.vy < 0) playWallBounce(); mover.vy = Math.abs(mover.vy); }
     if (mover.y >= bottom) { mover.y = bottom; if (mover.vy > 0) playWallBounce(); mover.vy = -Math.abs(mover.vy); }
     mover.element.style.left = `${mover.x}px`;
     mover.element.style.top = `${mover.y}px`;
   }
-  for (let i = 0; i < movers.length; i++) {
-    for (let j = i + 1; j < movers.length; j++) {
-      const a = movers[i], b = movers[j];
+  for (let i = 0; i < active.length; i++) {
+    for (let j = i + 1; j < active.length; j++) {
+      const a = active[i], b = active[j];
       const overlapX = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
       const overlapY = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
       if (overlapX > 0 && overlapY > 0) {
@@ -124,7 +142,7 @@ function animate(time) {
       }
     }
   }
-  for (const mover of movers) {
+  for (const mover of active) {
     mover.element.style.left = `${mover.x}px`;
     mover.element.style.top = `${mover.y}px`;
   }
@@ -132,6 +150,6 @@ function animate(time) {
 }
 
 randomizeColors();
-sizeStage();
+setTab('phone');
 window.addEventListener('resize', sizeStage);
 requestAnimationFrame(animate);

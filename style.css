@@ -65,6 +65,7 @@ h1 span { color: #d5ff49; }
   will-change: left, top;
   transition: background-color 150ms ease, color 150ms ease;
 }
+.repo[hidden] { display: none; }
 .repo span { font-size: 1em; }
 .repo:hover, .repo:focus-visible {
   background: var(--btn-fg, #171717);
@@ -76,3 +77,28 @@ h1 span { color: #d5ff49; }
   h1 { font-size: clamp(3.3rem, 18vw, 6rem); }
   .repo { padding: .3rem .5rem; gap: .4rem; }
 }
+
+.tabs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  padding: .75rem;
+}
+.tab {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: .4rem 1.1rem;
+  color: var(--fg);
+  background: transparent;
+  border: 2px solid var(--fg);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.tab:hover:not([aria-selected="true"]), .tab:focus-visible { background: #d5ff49; color: #171717; outline: none; }
